@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+{% block title %}Chat - Chat App{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Chat Header -->
+    <div class="text-center mb-8">
+      <div class="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+        AI Assistant
+      </h1>
+      <p class="text-gray-500">Ask me anything! I'll explain it like you're 5 🧒</p>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden flex flex-col h-[600px]">
+      <!-- Chat Header Bar -->
+      <div class="bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-6 border-b border-gray-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <h3 class="text-lg font-semibold text-gray-800">AI Assistant</h3>
+            <span class="text-sm text-gray-500">Online</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <!-- New Chat Button -->
+            <button 
+              onclick="startNewChat()" 
+              class="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+              title="Start New Chat"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              <span class="text-sm font-medium">New Chat</span>
+            </button>
+            <!-- Clear Chat Button -->
+            <button 
+              onclick="clearCurrentChat()" 
+              class="p-2 hover:bg-white/50 rounded-full transition-colors duration-200" 
+              title="Clear Chat"
+            >
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Session Info -->
+        <div class="mt-3 flex items-center justify-between text-xs text-gray-500">
+          <div class="flex items-center space-x-4">
+            <span id="sessionInfo">Current Session</span>
+            <span id="messageCount">0 messages</span>
+          </div>
+          <div id="sessionTime" class="text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div id="chatMessages" class="flex-1 p-6 overflow-y-auto space-y-4 bg-gradient-to-b from-transparent to-blue-50/20">
+        {% for message, response, timestamp in history %}
+        <div class="space-y-4">
+          <!-- User Message -->
+          <div class="flex justify-end animate-fade-in">
+            <div class="flex items-end space-x-2 max-w-xs lg:max-w-md">
+              <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-md px-4 py-3 shadow-lg">
+                <p class="text-sm font-medium">{{ message }}</p>
+              </div>
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AI Response -->
+          <div class="flex justify-start animate-fade-in">
+            <div class="flex items-end space-x-2 max-w-md lg:max-w-lg">
+              <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div class="bg-white/90 backdrop-blur-sm text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-lg border border-gray-100">
+                <p class="text-sm">{{ response }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Welcome Message if no history -->
+        {% if not history %}
+        <div class="flex justify-center">
+          <div class="text-center py-12">
+            <div class="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Start a conversation!</h3>
+            <p class="text-gray-500 text-sm">Ask me anything and I'll help explain it in simple terms.</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Message Input -->
+      <div class="p-6 bg-gradient-to-r from-blue-500/5 to-purple-500/5 border-t border-gray-100">
+        <div class="flex items-center space-x-4">
+          <!-- Input Field -->
+          <div class="flex-1 relative">
+            <input 
+              type="text" 
+              id="questionInput" 
+              placeholder="Ask me anything..." 
+              class="w-full px-4 py-3 pl-12 pr-4 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+              onkeypress="if(event.key==='Enter') askQuestion()"
+            >
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Send Button -->
+          <button 
+            onclick="askQuestion()" 
+            id="askButton"
+            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button onclick="insertQuestion('Explain quantum physics')" class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors duration-200">
+            Quantum Physics
+          </button>
+          <button onclick="insertQuestion('How do airplanes fly?')" class="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors duration-200">
+            How airplanes fly
+          </button>
+          <button onclick="insertQuestion('What is photosynthesis?')" class="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors duration-200">
+            Photosynthesis
+          </button>
+          <button onclick="insertQuestion('Explain black holes')" class="px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-colors duration-200">
+            Black holes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Chat Confirmation Modal -->
+<div id="newChatModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-95">
+    <div class="text-center">
+      <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Start New Chat?</h3>
+      <p class="text-gray-600 mb-6">This will clear your current conversation and start fresh. Your chat history won't be saved.</p>
+      
+      <div class="flex space-x-3">
+        <button 
+          onclick="closeNewChatModal()" 
+          class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button 
+          onclick="confirmNewChat()" 
+          class="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-md"
+        >
+          New Chat
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  #chatMessages::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  #chatMessages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #chatMessages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  #chatMessages::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Modal animations */
+  #newChatModal.show {
+    display: flex !important;
+  }
+  
+  #newChatModal.show > div {
+    transform: scale(1);
+  }
+
+  /* Message formatting styles */
+  .message-content strong {
+    font-weight: 600;
+  }
+  
+  .message-content em {
+    font-style: italic;
+  }
+  
+  .message-content code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+  
+  .message-content pre {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .message-content ul, .message-content ol {
+    margin: 8px 0;
+  }
+  
+  .message-content p {
+    margin: 0;
+  }
+  
+  .message-content p + p {
+    margin-top: 8px;
+  }
+
+  /* Thinking animation */
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .animate-bounce {
+    animation: bounce 1.4s ease-in-out infinite both;
+  }
+</style>
+
+<script>
+// Session management
+let currentSessionId = null;
+let sessionStartTime = null;
+let messageCount = 0;
+
+// Initialize session on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeSession();
+  document.getElementById('questionInput').focus();
+});
+
+function initializeSession() {
+  currentSessionId = generateSessionId();
+  sessionStartTime = new Date();
+  messageCount = 0;
+  updateSessionInfo();
+  updateSessionTime();
+  
+  // Update session time every minute
+  setInterval(updateSessionTime, 60000);
+}
+
+function generateSessionId() {
+  return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function updateSessionInfo() {
+  const sessionInfo = document.getElementById('sessionInfo');
+  const messageCountEl = document.getElementById('messageCount');
+  
+  sessionInfo.textContent = `Session: ${currentSessionId.split('_')[1]}`;
+  messageCountEl.textContent = `${messageCount} messages`;
+}
+
+function updateSessionTime() {
+  if (!sessionStartTime) return;
+  
+  const sessionTimeEl = document.getElementById('sessionTime');
+  const now = new Date();
+  const duration = Math.floor((now - sessionStartTime) / 1000 / 60); // minutes
+  
+  if (duration < 1) {
+    sessionTimeEl.textContent = 'Just started';
+  } else if (duration < 60) {
+    sessionTimeEl.textContent = `${duration}m ago`;
+  } else {
+    const hours = Math.floor(duration / 60);
+    const mins = duration % 60;
+    sessionTimeEl.textContent = `${hours}h ${mins}m ago`;
+  }
+}
+
+function startNewChat() {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  // If there are messages, show confirmation modal
+  if (messageCount > 0) {
+    showNewChatModal();
+  } else {
+    // If no messages, just refresh the session
+    confirmNewChat();
+  }
+}
+
+function showNewChatModal() {
+  const modal = document.getElementById('newChatModal');
+  modal.classList.remove('hidden');
+  setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeNewChatModal() {
+  const modal = document.getElementById('newChatModal');
+  modal.classList.remove('show');
+  setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+function confirmNewChat() {
+  closeNewChatModal();
+  
+  // Clear chat messages
+  const chatMessages = document.getElementById('chatMessages');
+  chatMessages.innerHTML = `
+    <div class="flex justify-center">
+      <div class="text-center py-12">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Start a conversation!</h3>
+        <p class="text-gray-500 text-sm">Ask me anything and I'll help explain it in simple terms.</p>
+      </div>
+    </div>
+  `;
+  
+  // Initialize new session
+  initializeSession();
+  
+  // Clear input
+  document.getElementById('questionInput').value = '';
+  document.getElementById('questionInput').focus();
+  
+  // Show success notification
+  showNotification('New chat started! 🎉', 'success');
+  
+  // Optional: Send request to backend to clear server-side session
+  fetch('/new-session', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({sessionId: currentSessionId})
+  }).catch(error => {
+    console.log('Note: Backend session clearing not implemented yet');
+  });
+}
+
+function clearCurrentChat() {
+  if (messageCount === 0) {
+    showNotification('Chat is already empty', 'info');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to clear the current chat?')) {
+    confirmNewChat();
+  }
+}
+
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 translate-x-full`;
+  
+  // Set color based on type
+  switch(type) {
+    case 'success':
+      notification.className += ' bg-gradient-to-r from-green-500 to-emerald-500';
+      break;
+    case 'error':
+      notification.className += ' bg-gradient-to-r from-red-500 to-red-600';
+      break;
+    default:
+      notification.className += ' bg-gradient-to-r from-blue-500 to-blue-600';
+  }
+  
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Animate out and remove
+  setTimeout(() => {
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+  }, 3000);
+}
+
+function askQuestion() {
+  const input = document.getElementById('questionInput');
+  const button = document.getElementById('askButton');
+  const question = input.value.trim();
+  
+  if (!question) return;
+  
+  // Disable input and button
+  input.disabled = true;
+  button.disabled = true;
+  
+  // Update button with loading state
+  button.innerHTML = `
+    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  `;
+  
+  // Add user message to chat
+  addMessage(question, true);
+  input.value = '';
+  
+  // Show thinking animation
+  showThinkingAnimation();
+  
+  // Include session ID in request
+  fetch('/ask', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      question: question,
+      sessionId: currentSessionId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Remove thinking animation
+    removeThinkingAnimation();
+    
+    if (data.error) {
+      addMessage('Sorry, something went wrong: ' + data.error, false);
+    } else {
+      addMessage(data.response, false);
+    }
+  })
+  .catch(error => {
+    // Remove thinking animation
+    removeThinkingAnimation();
+    addMessage('Sorry, something went wrong. Please try again.', false);
+  })
+  .finally(() => {
+    // Re-enable input and button
+    input.disabled = false;
+    button.disabled = false;
+    button.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+      </svg>
+    `;
+    input.focus();
+  });
+}
+
+function formatMessage(text) {
+  // Convert markdown-like formatting to HTML
+  let formatted = text
+    // Bold text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic text
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Code blocks
+    .replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-100 p-2 rounded mt-2 text-xs overflow-x-auto"><code>$1</code></pre>')
+    // Inline code
+    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded text-xs">$1</code>')
+    // Line breaks
+    .replace(/\n\n/g, '</p><p class="mt-2">')
+    .replace(/\n/g, '<br>');
+  
+  // Handle numbered lists
+  formatted = formatted.replace(/(\d+\.\s.*?)(?=\n\d+\.|\n\n|$)/gs, function(match) {
+    const items = match.split(/\n(?=\d+\.)/);
+    const listItems = items.map(item => {
+      const cleanItem = item.replace(/^\d+\.\s/, '');
+      return `<li class="mb-1">${cleanItem}</li>`;
+    }).join('');
+    return `<ol class="list-decimal list-inside mt-2 space-y-1">${listItems}</ol>`;
+  });
+  
+  // Handle bullet points
+  formatted = formatted.replace(/^[•\-\*]\s(.+)$/gm, '<li class="mb-1">$1</li>');
+  formatted = formatted.replace(/(<li class="mb-1">.*<\/li>)/s, '<ul class="list-disc list-inside mt-2 space-y-1">$1</ul>');
+  
+  return `<p>${formatted}</p>`;
+}
+
+function showThinkingAnimation() {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  // Remove welcome message if it exists
+  const welcomeMessage = chatMessages.querySelector('.text-center.py-12');
+  if (welcomeMessage) {
+    welcomeMessage.closest('.flex').remove();
+  }
+  
+  const thinkingDiv = document.createElement('div');
+  thinkingDiv.className = 'animate-fade-in';
+  thinkingDiv.id = 'thinkingMessage';
+  
+  thinkingDiv.innerHTML = `
+    <div class="flex justify-start">
+      <div class="flex items-end space-x-2 max-w-md lg:max-w-lg">
+        <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div class="bg-white/90 backdrop-blur-sm text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-lg border border-gray-100">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-600">AI is thinking</span>
+            <div class="flex space-x-1">
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  chatMessages.appendChild(thinkingDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeThinkingAnimation() {
+  const thinkingMessage = document.getElementById('thinkingMessage');
+  if (thinkingMessage) {
+    thinkingMessage.remove();
+  }
+}
+
+function addMessage(message, isUser) {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  // Remove welcome message if it exists
+  const welcomeMessage = chatMessages.querySelector('.text-center.py-12');
+  if (welcomeMessage) {
+    welcomeMessage.closest('.flex').remove();
+  }
+  
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'animate-fade-in';
+  
+  if (isUser) {
+    messageDiv.innerHTML = `
+      <div class="flex justify-end">
+        <div class="flex items-end space-x-2 max-w-xs lg:max-w-md">
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-md px-4 py-3 shadow-lg">
+            <div class="text-sm font-medium">${formatMessage(message)}</div>
+          </div>
+          <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    `;
+    messageCount++;
+  } else {
+    messageDiv.innerHTML = `
+      <div class="flex justify-start">
+        <div class="flex items-end space-x-2 max-w-md lg:max-w-lg">
+          <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div class="bg-white/90 backdrop-blur-sm text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-lg border border-gray-100 max-w-none">
+            <div class="text-sm">${formatMessage(message)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    messageCount++;
+  }
+  
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  
+  // Update session info
+  updateSessionInfo();
+}
+
+function insertQuestion(question) {
+  document.getElementById('questionInput').value = question;
+  document.getElementById('questionInput').focus();
+}
+</script>
+{% endblock %}
